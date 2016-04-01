@@ -1,34 +1,23 @@
 connect to c4411;
-drop table test;
-drop table closureg;
+drop table graph;
+drop table trans_cl;
+drop table sub_owns;
+drop table sub_isIn;
+drop table path1;
+drop table path2;
+
 create table graph(subject varchar(100), predicate varchar(20), object varchar(100));
-import from /eecs/home/cse31018/4411p/tnoc.csv of del insert into graph;
-select * from graph where RRN(graph)=17986;
+import from /eecs/home/cse31018/dbpj/4411p/tnoc.csv of del insert into graph;
 
-	with sub_owns(subject, object)
-	as(
-		select T.subject, T.object
-		from graph T
-		where T.predicate = 'owns'
-	),
-	sub_isIn(subject, object)
-	as(
-		select T.subject, T.object
-		from graph T
-		where T.predicate = 'isInterestedIn'
-	),
-	path(origin, depart, arrival)
-	as(
-		select R.subject, R.subject, R.object
-		from sub_owns R
-		UNION ALL
-		select P.origin, C.subject, C.object
-		from sub_owns C, path P
-		where  C.subject = P.arrival and C.object <> P.origin 
-),
+create table trans_cl(closure_predicate varchar(20), count_distinct int);
+CREATE TABLE sub_isIn(subject varchar(100), object varchar(100));
+CREATE TABLE sub_owns(subject varchar(100), object varchar(100));
+create table path1(origin varchar(100),arrival varchar(100));
+create table path2(origin varchar(100),arrival varchar(100));
 
-closureg(closure_predicate, count_distinct)
-as(select 1, count(*) from path)
-
+insert into sub_owns(select T.subject, T.object from graph T where T.predicate = 'owns');
+insert into sub_isIn(select T.subject, T.object from graph T where predicate = 'isInterestedIn');
+insert into trans_cl(closure_predicate, count_distinct) values('owns',0);
+insert into trans_cl(closure_predicate, count_distinct) values('isInterestedIn',0);
 terminate;
 
